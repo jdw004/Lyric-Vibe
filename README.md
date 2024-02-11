@@ -6,7 +6,7 @@ We knew that we wanted to incorporate the spotify API in some way, and searched 
 LyricVibe utilizes sentiment analysis to determine whether a user has "happy" or "sad" music taste, by analyzing lyrics of songs in their playlists.
 
 ## How We Built It
-Various tech here 
+Taipy, Python, MongoDB Atlas, Spotify API
 
 ## Challenges
 One challenge we had was learning how to properly use Taipy, as none of us had prior experience with it.

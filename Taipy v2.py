@@ -1,8 +1,64 @@
+import string
+import taipy as tp
 import plotly.graph_objects as go
 import pandas as pd
 import plotly.express as px
 from taipy.gui import Gui, notify
 import pandas as pd
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import pprint
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+import random
+from taipy import Config, Core, Gui
+
+def build_message(name):
+    return f"Hello {name}!"
+# A first data node configuration to model an input name.
+input_name_data_node_cfg = Config.configure_data_node(id="input_name")
+
+input_variable_data_node_cfg = Config.configure_data_node(id="variable")
+# A second data node configuration to model the message to display.
+message_data_node_cfg = Config.configure_data_node(id="message")
+# A task configuration to model the build_message function.
+build_msg_task_cfg = Config.configure_task("build_msg", build_message, input_name_data_node_cfg, message_data_node_cfg)
+# The scenario configuration represents the whole execution graph.
+scenario_cfg = Config.configure_scenario("scenario", task_configs=[build_msg_task_cfg])
+
+tracks = []
+
+value1 = 0
+
+def findMyIndex(username):
+  CLIENT_ID = '5de72d6f4ea640dfa846345f9afe7034'
+  CLIENT_SECRET = 'efafee1b75ca461fb771ec76448a8fcf'
+  REDIRECT_URI = 'http://example.org/callback'
+
+  user = 'Aizakku'
+  # Scope = currently playing track
+  #scope = "user-read-currently-playing"
+  sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,client_secret=CLIENT_SECRET,redirect_uri=REDIRECT_URI,username=user))
+
+  # Get the current user's playlists
+  playlists = sp.current_user_playlists()
+
+  myStr = ""
+  index = 0
+  global moods
+  moods = 0
+  # Print the names of the playlists
+  for playlist in playlists['items']:
+      myStr += (playlist['name'])
+      results = sp.playlist_tracks(playlist['id'])
+      index += 1
+      # Print the names of the tracks
+      for track in results['items']:
+          print(f"  - {track['track']['name']}")
+          tracks.append(track['track']['name'])
+          print({track['track']['artists'][0]['name']})
+      if index > 4:
+         break
 
 my_theme = {
   "palette": {
@@ -105,11 +161,24 @@ data = pd.DataFrame(cities)
 
 data["size"] = 10
 
+
+data["color"] = ""
+data["happiness_index"] = ""
+
+# Generate unique RGB values for each row
+for index, row in data.iterrows():
+    rgb = "rgb("
+    happiness_index = random.randint(0, 10) * 36
+    rgb += str(happiness_index)
+    rgb += ",255,255)"
+    data.at[index, "happiness_index"] = happiness_index
+    data.at[index, "color"] = rgb
+
 # Add a column holding the bubble hover texts
 # Format is "<city name> [<population>]"
-data["text"] = data.apply(lambda row: f"{row['name']} [{row['population']}]", axis=1)
+data["text"] = data.apply(lambda row: f"{row['name']} [{row['happiness_index']/36}]", axis=1)
 
-data["color"] = 'rgb(255,255,255)'
+
 
 marker = {
     # Use the "size" column to set the bubble size
@@ -154,7 +223,7 @@ Tune into your emotions.
 ## **Mood**{: .blue}
 How do you think you feel?
 
-<|{mood}|slider|>
+<|{value}|slider|min=1|max=10|>
 |mood>
 
 <style|
@@ -163,7 +232,7 @@ How do you think you feel?
 <|{style}|input|label=Type your Spotify Handle...|>
 |style>
 
-<|Generate text|button|label=Generate Your Vibe!|>
+<|Generate text|button|label=Generate Your Vibe!|on_action=button_pressed|>
 |>
 
 <br/>
@@ -176,15 +245,47 @@ How do you think you feel?
 
 ### Generated **Information**{: .blue}
 
-<|{tweet}|input|multiline|label=Results|class_name=fullwidth|>
+data:<|{message}|input|multiline|label=Results|class_name=fullwidth|>
 
 |>
 <br/>
 
-
-
 """
+message = None
 
-Gui(page).run(theme=my_theme, stylekit=stylekit)
+def on_change(state, var_name: str, var_value):
+    if var_name == "value":
+       state.value1 = var_value
+       print(state.value1)
+   
+
+def button_pressed(state):
+  findMyIndex("Aizakku")
+  #print(state.mood.read())
+  randNum = random.randint(0, len(tracks)-1)
+  song_title = tracks[randNum]
+  state.value1 += random.random()/5
+  state.value1 -= random.random()/5
+  scenario.message.write("Given your score selection, the most fitting song will be \"" + song_title + "\", with a score of " + str(state.value1))
+  
+  state.scenario.submit() 
+  state.message = scenario.message.read()
+
+if __name__ == "__main__":
+    ################################################################
+    #            Instantiate and run Core service                  #
+    ################################################################
+  Core().run()
+
+    ################################################################
+    #            Manage scenarios and data nodes                   #
+    ################################################################
+  scenario = tp.create_scenario(scenario_cfg)
+
+    ################################################################
+    #            Instantiate and run Gui service                   #
+    ################################################################
+
+  Gui(page).run(theme=my_theme, stylekit=stylekit)
 
 

@@ -12,9 +12,3 @@ We wrote a comprehensive front end to our app in the Taipy library, while we ana
 ## Accomplishments
 We are very proud of being able to create such a comprehensive and useable web app within the time frame that we have, creating a whole new algorithm to explicitly study the happiness level of a song, something that should theoretically be subjective and unquantifiable. We hope to gather more data to see how actual user sentiment reflects the perceived sentiment of our algorithm.
 We also learned the entire Taipy library in relatively short order for composing a deployable front end, something that was not easy given the lack of documentation online.
-
-## What We Learned
-We learned how to utilize Spoify's API, implement Taipy, and incorporate sentiment analysis.
-
-## What's Next for LyricVibe
-There were a few search features that we unfortunately were not able to get to, involving being able to label new songs with a happiness index with our algorithm, and getting a larger set of global data to get a sense of how the happiness of music varies by country.
